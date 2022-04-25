@@ -1,7 +1,6 @@
 ﻿using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -14,20 +13,20 @@ namespace PasswordStorage.ViewModels
 {
   public class PasswordsViewModel : ReactiveObject
   {
-    private string fileName;
+    private ObservableAsPropertyHelper<string> fileName;
     private string searchText;
     
     private PasswordInfo selected;
+    private readonly Interaction<string, string> browseFile = new Interaction<string, string>();
     private readonly PasswordsDataModel data = new PasswordsDataModel();
     private readonly List<PasswordInfo> hidenByFilter = new List<PasswordInfo>();
 
     private bool isOperable = true;
 
-    public string FileName
-    {
-      get => fileName;
-      set => this.RaiseAndSetIfChanged(ref fileName, value);
-    }
+    public Interaction<string, string> BrowseFile 
+      => this.browseFile;
+
+    public string FileName => fileName?.Value ?? string.Empty;
 
     public string SearchText
     {
@@ -35,7 +34,8 @@ namespace PasswordStorage.ViewModels
       set => this.RaiseAndSetIfChanged(ref searchText, value);
     }
 
-    public BindingList<PasswordInfo> Data => data.Passwords;
+    public BindingList<PasswordInfo> Data 
+      => data.Passwords;
 
     public PasswordInfo Selected 
     { 
@@ -102,27 +102,14 @@ namespace PasswordStorage.ViewModels
       FilterCommand = ReactiveCommand.Create(Filter, canFilter);
     }
 
-    private void Browse()
-    {
-      OpenFileDialog dialog = new OpenFileDialog
-      {
-        CheckFileExists = true,
-        Multiselect = false,
-        RestoreDirectory = true,
-        Title = "Choose your file..."
-      };
+    private void Browse() 
+      => fileName = browseFile.Handle(FileName).ToProperty(this, nameof(FileName));
 
-      dialog.SetFilter("Password files", "pwd");
+    private async Task LoadAsync() 
+      => await data.LoadAsync(FileName);
 
-      if (dialog.ShowDialog() == DialogResult.OK)
-      {
-        FileName = dialog.FileName;
-      }
-    }
-
-    private async Task LoadAsync() => await data.LoadAsync(FileName);
-
-    private async Task SaveAsync() => await data.SaveAsync(FileName);
+    private async Task SaveAsync() 
+      => await data.SaveAsync(FileName);
 
     private void Filter()
     {
@@ -163,8 +150,10 @@ namespace PasswordStorage.ViewModels
     private bool IsNotSuitable(PasswordInfo password)
       => !IsSuitable(password);
 
-    private void CopyLogin() => Clipboard.SetText(Selected.UserName);
+    private void CopyLogin() 
+      => Clipboard.SetText(Selected.UserName);
 
-    private void CopyPassword() => Clipboard.SetText(Selected.Password);
+    private void CopyPassword() 
+      => Clipboard.SetText(Selected.Password);
   }
 }

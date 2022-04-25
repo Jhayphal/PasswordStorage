@@ -1,25 +1,19 @@
-﻿using PasswordStorage.ViewModels;
+﻿using PasswordStorage.Properties;
+using PasswordStorage.ViewModels;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PasswordStorage
 {
   internal class PasswordsReaderForm : Form, IViewFor<PasswordsViewModel>
   {
-    private const string PasswordStorageKey = @"C:\Users\OlegN\OneDrive\pswds.csv";
-
     public DataGridView View;
 
     public TextBox TextBoxFile;
-    public Button ButtonFile;
+    public Button ButtonBrowse;
     public Button ButtonLoad;
 
     public Button ButtonCopyLogin;
@@ -27,7 +21,7 @@ namespace PasswordStorage
     public Button ButtonSave;
 
     public TextBox TextBoxFilter;
-    public Button ButtonFilter;
+    public Button ButtonApplyFilter;
 
     public PasswordsViewModel ViewModel { get; set; } = new PasswordsViewModel();
 
@@ -40,7 +34,14 @@ namespace PasswordStorage
     public PasswordsReaderForm()
     {
       this.BeginSetup();
+      
+      this.Iniatialize();
 
+      this.EndSetup();
+    }
+
+    private void Iniatialize()
+    {
       var panelMain = CreateMainPanel();
       var groupBoxFile = CreateFileGroupBox();
       var groupBoxPassword = CreatePasswordsGroupBox();
@@ -51,10 +52,6 @@ namespace PasswordStorage
       SetBindings();
 
       this.Add(panelMain);
-
-      this.EndSetup();
-
-      //view.DataSource = new PasswordsDataModel(PasswordStorageKey).Passwords;
     }
 
     private TableLayoutPanel CreateMainPanel()
@@ -67,7 +64,9 @@ namespace PasswordStorage
       };
 
       panelMain.Dock = DockStyle.Fill;
+      
       panelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+      
       panelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 60f));
       panelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
       panelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 60f));
@@ -80,7 +79,7 @@ namespace PasswordStorage
       GroupBox groupBoxFile = new GroupBox
       {
         Name = nameof(groupBoxFile),
-        Text = "File with passwords",
+        Text = Resources.GroupBoxFileHeader,
         Dock = DockStyle.Fill
       };
 
@@ -92,6 +91,7 @@ namespace PasswordStorage
       };
 
       panelFile.Dock = DockStyle.Fill;
+      
       panelFile.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
       panelFile.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
       panelFile.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
@@ -99,14 +99,13 @@ namespace PasswordStorage
       TextBoxFile = new TextBox
       {
         Name = nameof(TextBoxFile),
-        Text = PasswordStorageKey,
-        Dock = DockStyle.Fill,
+        Dock = DockStyle.Fill
       };
 
-      ButtonFile = new Button
+      ButtonBrowse = new Button
       {
-        Name = nameof(ButtonFile),
-        Text = "&Browse...",
+        Name = nameof(ButtonBrowse),
+        Text = Resources.ButtonBrowseText,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink
       };
@@ -114,12 +113,12 @@ namespace PasswordStorage
       ButtonLoad = new Button
       {
         Name = nameof(ButtonLoad),
-        Text = "L&oad",
+        Text = Resources.ButtonLoadText,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink
       };
 
-      panelFile.Build((TextBoxFile, ButtonFile, ButtonLoad));
+      panelFile.Build((TextBoxFile, ButtonBrowse, ButtonLoad));
       
       groupBoxFile.Add(panelFile);
 
@@ -131,7 +130,7 @@ namespace PasswordStorage
       GroupBox groupBoxPasswords = new GroupBox
       {
         Name = nameof(groupBoxPasswords),
-        Text = "Passwords",
+        Text = Resources.GroupBoxPasswordsHeader,
         Dock = DockStyle.Fill
       };
 
@@ -147,6 +146,7 @@ namespace PasswordStorage
       panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
       panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
       panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+      
       panelControls.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
       panelControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
@@ -182,7 +182,7 @@ namespace PasswordStorage
       ButtonCopyLogin = new Button
       {
         Name = nameof(ButtonCopyLogin),
-        Text = "Copy &Login",
+        Text = Resources.ButtonCopyLoginText,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink
       };
@@ -190,7 +190,7 @@ namespace PasswordStorage
       ButtonCopyPassword = new Button
       {
         Name = nameof(ButtonCopyPassword),
-        Text = "Copy &Password",
+        Text = Resources.ButtonCopyPaswordText,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink
       };
@@ -198,7 +198,7 @@ namespace PasswordStorage
       ButtonSave = new Button
       {
         Name = nameof(ButtonSave),
-        Text = "&Save",
+        Text = Resources.ButtonSaveText,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink
       };
@@ -219,7 +219,7 @@ namespace PasswordStorage
       GroupBox groupBoxFilter = new GroupBox
       {
         Name = nameof(groupBoxFilter),
-        Text = "Filter",
+        Text = Resources.GroupBoxFilterHeader,
         Dock = DockStyle.Fill
       };
 
@@ -233,6 +233,7 @@ namespace PasswordStorage
 
       panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
       panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+      
       panelControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
       TextBoxFilter = new TextBox
@@ -241,15 +242,15 @@ namespace PasswordStorage
         Dock = DockStyle.Fill
       };
 
-      ButtonFilter = new Button
+      ButtonApplyFilter = new Button
       {
-        Name = nameof(ButtonFilter),
-        Text = "&Apply",
+        Name = nameof(ButtonApplyFilter),
+        Text = Resources.ButtonApplyFilterText,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink
       };
 
-      panelControls.Build((TextBoxFilter, ButtonFilter));
+      panelControls.Build((TextBoxFilter, ButtonApplyFilter));
       
       groupBoxFilter.Add(panelControls);
 
@@ -260,9 +261,27 @@ namespace PasswordStorage
     {
       this.WhenActivated(disposables =>
       {
+        ViewModel.BrowseFile.RegisterHandler(interaction =>
+        {
+          OpenFileDialog dialog = new OpenFileDialog
+          {
+            CheckFileExists = true,
+            Multiselect = false,
+            RestoreDirectory = true,
+            Title = Resources.BrowseDialogHeader
+          };
+
+          dialog.SetFilter(Resources.BrowseFilterName, Resources.BrowseFilterExtension);
+
+          if (dialog.ShowDialog() == DialogResult.OK)
+            interaction.SetOutput(dialog.FileName);
+          else
+            interaction.SetOutput(interaction.Input);
+        }).DisposeWith(disposables);
+
         this.Bind(ViewModel, vm => vm.FileName, f => f.TextBoxFile.Text)
           .DisposeWith(disposables);
-        this.BindCommand(ViewModel, vm => vm.BrowseCommand, f => f.ButtonFile)
+        this.BindCommand(ViewModel, vm => vm.BrowseCommand, f => f.ButtonBrowse)
           .DisposeWith(disposables);
         this.BindCommand(ViewModel, vm => vm.LoadCommand, f => f.ButtonLoad)
           .DisposeWith(disposables);
@@ -279,7 +298,7 @@ namespace PasswordStorage
 
         this.Bind(ViewModel, vm => vm.SearchText, f => f.TextBoxFilter.Text)
           .DisposeWith(disposables);
-        this.BindCommand(ViewModel, vm => vm.FilterCommand, f => f.ButtonFilter)
+        this.BindCommand(ViewModel, vm => vm.FilterCommand, f => f.ButtonApplyFilter)
           .DisposeWith(disposables);
       });
     }
