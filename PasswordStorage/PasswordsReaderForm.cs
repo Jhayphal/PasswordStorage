@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -149,13 +150,32 @@ namespace PasswordStorage
       panelControls.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
       panelControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-      this.View = new DataGridView
+      View = new DataGridView
       {
         Name = nameof(View),
         Dock = DockStyle.Fill,
-        AutoGenerateColumns = true,
+        AutoGenerateColumns = false,
         AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
       };
+
+      var properties = typeof(PasswordInfo).GetProperties
+      (
+          BindingFlags.Public
+        | BindingFlags.Instance
+        | BindingFlags.DeclaredOnly
+        | BindingFlags.GetProperty
+      );
+
+      View.Columns.AddRange
+      (
+        properties.Select(x => new DataGridViewTextBoxColumn
+        {
+          Name = x.Name,
+          ValueType = x.PropertyType,
+          DataPropertyName = x.Name,
+          HeaderText = x.Name
+        }).ToArray()
+      );
 
       panelControls.SetColumnSpan(control: View, value: panelControls.ColumnCount);
 
@@ -246,8 +266,6 @@ namespace PasswordStorage
           .DisposeWith(disposables);
         this.BindCommand(ViewModel, vm => vm.LoadCommand, f => f.ButtonLoad)
           .DisposeWith(disposables);
-
-        //View.DataSource = ViewModel.Data;
 
         this.Bind(ViewModel, vm => vm.Data, f => f.View.DataSource)
           .DisposeWith(disposables);

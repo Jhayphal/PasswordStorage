@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,13 +11,24 @@ namespace PasswordStorage
 {
   public class PasswordsDataModel
   {
-    private ObservableCollection<PasswordInfo> passwords;
+    private BindingList<PasswordInfo> passwords;
 
-    public ObservableCollection<PasswordInfo> Passwords => passwords;
+    public BindingList<PasswordInfo> Passwords => passwords;
 
     public PasswordsDataModel()
     {
-      passwords = new ObservableCollection<PasswordInfo>();
+      passwords = new BindingList<PasswordInfo>
+      {
+        // Allow new parts to be added, but not removed once committed.        
+        AllowNew = true,
+        AllowRemove = true,
+
+        // Raise ListChanged events when new parts are added.
+        RaiseListChangedEvents = true,
+
+        // Do not allow parts to be edited.
+        AllowEdit = true
+      };
     }
 
     public async Task LoadAsync(string fileName)
@@ -35,6 +47,16 @@ namespace PasswordStorage
             passwords.Add(passwordInfo);
           }
         }
+      }
+    }
+
+    public async Task SaveAsync(string fileName)
+    {
+      using (var stream = new FileStream(fileName, FileMode.Create))
+      using (var writer = new StreamWriter(stream))
+      {
+        foreach (var passwordInfo in passwords)
+          await writer.WriteLineAsync(passwordInfo.ToString());
       }
     }
   }

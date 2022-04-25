@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -17,7 +18,8 @@ namespace PasswordStorage.ViewModels
     private string searchText;
     
     private PasswordInfo selected;
-    private readonly PasswordsDataModel data;
+    private readonly PasswordsDataModel data = new PasswordsDataModel();
+    private readonly List<PasswordInfo> hidenByFilter = new List<PasswordInfo>();
 
     private bool isOperable = true;
 
@@ -33,7 +35,7 @@ namespace PasswordStorage.ViewModels
       set => this.RaiseAndSetIfChanged(ref searchText, value);
     }
 
-    public ObservableCollection<PasswordInfo> Data => data.Passwords;
+    public BindingList<PasswordInfo> Data => data.Passwords;
 
     public PasswordInfo Selected 
     { 
@@ -61,15 +63,13 @@ namespace PasswordStorage.ViewModels
 
     public PasswordsViewModel()
     {
-      data = new PasswordsDataModel();
-
       BrowseCommand = ReactiveCommand.Create(Browse);
 
       var canLoad = this.WhenAnyValue(
         x => x.IsOperable,
         x => x.FileName,
         (operable, file) => operable && !string.IsNullOrWhiteSpace(file) && File.Exists(file))
-        .Throttle(TimeSpan.FromSeconds(.25))
+        .Throttle(TimeSpan.FromSeconds(.25), RxApp.MainThreadScheduler)
         .DistinctUntilChanged();
 
       LoadCommand = ReactiveCommand.CreateFromTask(LoadAsync, canLoad);
@@ -77,10 +77,10 @@ namespace PasswordStorage.ViewModels
       var canSave = this.WhenAnyValue(
         x => x.IsOperable,
         x => x.FileName,
-        (operable, file) => operable && !string.IsNullOrWhiteSpace(file))
+        (operable, file) => operable && !string.IsNullOrWhiteSpace(file) && Directory.Exists(Path.GetDirectoryName(file)))
         .DistinctUntilChanged();
 
-      SaveCommand = ReactiveCommand.Create(Save, canSave);
+      SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, canSave);
 
       var canCopy = this.WhenAnyValue(
         x => x.IsOperable,
@@ -92,9 +92,11 @@ namespace PasswordStorage.ViewModels
       CopyPasswordCommand = ReactiveCommand.Create(CopyPassword, canCopy);
 
       var canFilter = this.WhenAnyValue(
-        x => x.IsOperable,
-        x => x.SearchText,
-        (operable, search) => operable && !string.IsNullOrWhiteSpace(search))
+        x => x.IsOperable, 
+        x => x.SearchText, 
+        x => x.hidenByFilter, 
+        (operable, search, hiden) 
+          => operable && (!string.IsNullOrEmpty(search) || hiden.Count > 0))
         .DistinctUntilChanged();
 
       FilterCommand = ReactiveCommand.Create(Filter, canFilter);
@@ -120,9 +122,46 @@ namespace PasswordStorage.ViewModels
 
     private async Task LoadAsync() => await data.LoadAsync(FileName);
 
-    private void Save() { }
+    private async Task SaveAsync() => await data.SaveAsync(FileName);
 
-    private void Filter() => MessageBox.Show(SearchText);
+    private void Filter()
+    {
+      if (hidenByFilter.Count == 0)
+      {
+        hidenByFilter.AddRange(Data.Where(IsNotSuitable));
+
+        foreach (var password in hidenByFilter)
+          Data.Remove(password);
+      }
+      else if (string.IsNullOrEmpty(SearchText))
+      {
+        foreach(var password in hidenByFilter)
+          Data.Add(password);
+
+        hidenByFilter.Clear();
+      }
+      else
+      {
+        var cache = new List<PasswordInfo>(hidenByFilter);
+        cache.AddRange(Data);
+
+        hidenByFilter.Clear();
+        hidenByFilter.AddRange(cache.Where(IsNotSuitable));
+
+        foreach (var password in hidenByFilter)
+          Data.Remove(password);
+
+        foreach (var password in cache.Where(IsSuitable))
+          if (!Data.Any(p => ReferenceEquals(p, password)))
+            Data.Add(password);
+      }
+    }
+
+    private bool IsSuitable(PasswordInfo password)
+      => password.ToString().IndexOf(SearchText, StringComparison.CurrentCultureIgnoreCase) > -1;
+
+    private bool IsNotSuitable(PasswordInfo password)
+      => !IsSuitable(password);
 
     private void CopyLogin() => Clipboard.SetText(Selected.UserName);
 

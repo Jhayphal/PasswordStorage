@@ -45,6 +45,8 @@ namespace PasswordStorage
       set => this.RaiseAndSetIfChanged(ref tags, value);
     }
 
+    public override string ToString() => $"{Url},{UserName},{Password},{Comment},{Tags}";
+
     public static bool TryParse(string text, out PasswordInfo password)
     {
       var parts = text.Split(',');
