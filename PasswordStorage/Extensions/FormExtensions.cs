@@ -1,7 +1,8 @@
-﻿using System.Drawing;
+﻿using PasswordStorage.Common;
+using System.Drawing;
 using System.Windows.Forms;
 
-namespace PasswordStorage
+namespace PasswordStorage.Extensions
 {
   internal static class FormExtensions
   {

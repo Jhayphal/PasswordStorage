@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace PasswordStorage
+namespace PasswordStorage.Extensions
 {
   internal static class ControlExtensions
   {

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Windows.Forms;
 
-namespace PasswordStorage
+namespace PasswordStorage.Extensions
 {
   internal static class TableLayoutExtensions
   {
@@ -62,6 +62,22 @@ namespace PasswordStorage
       {
         pane.ResumeLayout();
       }
+    }
+
+    public static TableLayoutPanel AddRowStyle(this TableLayoutPanel panel, RowStyle style, int repeatTimes = 1)
+    {
+      while (repeatTimes-- > 0)
+        panel.RowStyles.Add(repeatTimes == 0 ? style : new RowStyle(style.SizeType, style.Height));
+
+      return panel;
+    }
+
+    public static TableLayoutPanel AddColumnStyle(this TableLayoutPanel panel, ColumnStyle style, int repeatTimes = 1)
+    {
+      while (repeatTimes-- > 0)
+        panel.ColumnStyles.Add(repeatTimes == 0 ? style : new ColumnStyle(style.SizeType, style.Width));
+
+      return panel;
     }
   }
 }

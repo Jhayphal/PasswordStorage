@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace PasswordStorage
+namespace PasswordStorage.Models
 {
   public class PasswordsDataModel
   {

@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace PasswordStorage
+namespace PasswordStorage.Models
 {
   public class PasswordInfo : ReactiveObject
   {

@@ -1,4 +1,7 @@
-﻿using PasswordStorage.Properties;
+﻿using PasswordStorage.Controls;
+using PasswordStorage.Extensions;
+using PasswordStorage.Models;
+using PasswordStorage.Properties;
 using PasswordStorage.ViewModels;
 using ReactiveUI;
 using System.Linq;
@@ -56,67 +59,32 @@ namespace PasswordStorage
 
     private TableLayoutPanel CreateMainPanel()
     {
-      TableLayoutPanel panelMain = new TableLayoutPanel
-      {
-        Name = nameof(panelMain),
-        RowCount = 3,
-        ColumnCount = 1
-      };
-
-      panelMain.Dock = DockStyle.Fill;
+      TableLayoutPanel panelMain = new JTableLayoutPanel(rows: 3, columns: 1) { Name = nameof(panelMain) };
       
-      panelMain.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+      panelMain.AddColumnStyle(new ColumnStyle(SizeType.Percent, 100f));
       
-      panelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 60f));
-      panelMain.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-      panelMain.RowStyles.Add(new RowStyle(SizeType.Absolute, 60f));
+      panelMain
+        .AddRowStyle(new RowStyle(SizeType.Absolute, 60f))
+        .AddRowStyle(new RowStyle(SizeType.Percent, 100f))
+        .AddRowStyle(new RowStyle(SizeType.Absolute, 60f));
 
       return panelMain;
     }
 
     private GroupBox CreateFileGroupBox()
     {
-      GroupBox groupBoxFile = new GroupBox
-      {
-        Name = nameof(groupBoxFile),
-        Text = Resources.GroupBoxFileHeader,
-        Dock = DockStyle.Fill
-      };
+      GroupBox groupBoxFile = new JGroupBox(Resources.GroupBoxFileHeader) { Name = nameof(groupBoxFile) };
 
-      TableLayoutPanel panelFile = new TableLayoutPanel
-      {
-        Name = nameof(panelFile),
-        RowCount = 1,
-        ColumnCount = 3
-      };
-
-      panelFile.Dock = DockStyle.Fill;
+      TableLayoutPanel panelFile = new JTableLayoutPanel(rows: 1, columns: 3) { Name = nameof(panelFile) };
       
-      panelFile.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-      panelFile.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-      panelFile.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+      panelFile
+        .AddColumnStyle(new ColumnStyle(SizeType.Percent, 100f))
+        .AddColumnStyle(new ColumnStyle(SizeType.AutoSize), repeatTimes: 2);
 
-      TextBoxFile = new TextBox
-      {
-        Name = nameof(TextBoxFile),
-        Dock = DockStyle.Fill
-      };
+      TextBoxFile = new JTextBox { Name = nameof(TextBoxFile) };
 
-      ButtonBrowse = new Button
-      {
-        Name = nameof(ButtonBrowse),
-        Text = Resources.ButtonBrowseText,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink
-      };
-
-      ButtonLoad = new Button
-      {
-        Name = nameof(ButtonLoad),
-        Text = Resources.ButtonLoadText,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink
-      };
+      ButtonBrowse = new JButton(Resources.ButtonBrowseText) { Name = nameof(ButtonBrowse) };
+      ButtonLoad = new JButton(Resources.ButtonLoadText) { Name = nameof(ButtonLoad) };
 
       panelFile.Build((TextBoxFile, ButtonBrowse, ButtonLoad));
       
@@ -127,36 +95,20 @@ namespace PasswordStorage
 
     private GroupBox CreatePasswordsGroupBox()
     {
-      GroupBox groupBoxPasswords = new GroupBox
-      {
-        Name = nameof(groupBoxPasswords),
-        Text = Resources.GroupBoxPasswordsHeader,
-        Dock = DockStyle.Fill
-      };
+      GroupBox groupBoxPasswords = new JGroupBox(Resources.GroupBoxPasswordsHeader) { Name = nameof(groupBoxPasswords) };
 
-      TableLayoutPanel panelControls = new TableLayoutPanel
-      {
-        Name = nameof(panelControls),
-        ColumnCount = 4,
-        RowCount = 2,
-        Dock = DockStyle.Fill
-      };
+      TableLayoutPanel panelControls = new JTableLayoutPanel(rows: 2, columns: 4) { Name = nameof(panelControls) };
 
-      panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-      panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-      panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-      panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+      panelControls
+        .AddColumnStyle(new ColumnStyle(SizeType.AutoSize), repeatTimes: 2)
+        .AddColumnStyle(new ColumnStyle(SizeType.Percent, 100f))
+        .AddColumnStyle(new ColumnStyle(SizeType.AutoSize));
       
-      panelControls.RowStyles.Add(new RowStyle(SizeType.Percent, 100f));
-      panelControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+      panelControls
+        .AddRowStyle(new RowStyle(SizeType.Percent, 100f))
+        .AddRowStyle(new RowStyle(SizeType.AutoSize));
 
-      View = new DataGridView
-      {
-        Name = nameof(View),
-        Dock = DockStyle.Fill,
-        AutoGenerateColumns = false,
-        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-      };
+      View = new JDataGridView { Name = nameof(View) };
 
       var properties = typeof(PasswordInfo).GetProperties
       (
@@ -179,29 +131,9 @@ namespace PasswordStorage
 
       panelControls.SetColumnSpan(control: View, value: panelControls.ColumnCount);
 
-      ButtonCopyLogin = new Button
-      {
-        Name = nameof(ButtonCopyLogin),
-        Text = Resources.ButtonCopyLoginText,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink
-      };
-
-      ButtonCopyPassword = new Button
-      {
-        Name = nameof(ButtonCopyPassword),
-        Text = Resources.ButtonCopyPaswordText,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink
-      };
-
-      ButtonSave = new Button
-      {
-        Name = nameof(ButtonSave),
-        Text = Resources.ButtonSaveText,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink
-      };
+      ButtonCopyLogin = new JButton(Resources.ButtonCopyLoginText) { Name = nameof(ButtonCopyLogin) };
+      ButtonCopyPassword = new JButton(Resources.ButtonCopyPaswordText) { Name = nameof(ButtonCopyPassword) };
+      ButtonSave = new JButton(Resources.ButtonSaveText) { Name = nameof(ButtonSave) };
 
       panelControls.Build
       (
@@ -216,39 +148,19 @@ namespace PasswordStorage
 
     private GroupBox CreateFilterGroupBox()
     {
-      GroupBox groupBoxFilter = new GroupBox
-      {
-        Name = nameof(groupBoxFilter),
-        Text = Resources.GroupBoxFilterHeader,
-        Dock = DockStyle.Fill
-      };
+      GroupBox groupBoxFilter = new JGroupBox(Resources.GroupBoxFilterHeader) { Name = nameof(groupBoxFilter) };
 
-      TableLayoutPanel panelControls = new TableLayoutPanel
-      {
-        Name = nameof(panelControls),
-        ColumnCount = 2,
-        RowCount = 1,
-        Dock = DockStyle.Fill
-      };
+      TableLayoutPanel panelControls = new JTableLayoutPanel(rows: 1, columns: 2) { Name = nameof(panelControls) };
 
-      panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
-      panelControls.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+      panelControls
+        .AddColumnStyle(new ColumnStyle(SizeType.Percent, 100f))
+        .AddColumnStyle(new ColumnStyle(SizeType.AutoSize));
       
-      panelControls.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+      panelControls.AddRowStyle(new RowStyle(SizeType.AutoSize));
 
-      TextBoxFilter = new TextBox
-      {
-        Name = nameof(TextBoxFilter),
-        Dock = DockStyle.Fill
-      };
+      TextBoxFilter = new JTextBox { Name = nameof(TextBoxFilter) };
 
-      ButtonApplyFilter = new Button
-      {
-        Name = nameof(ButtonApplyFilter),
-        Text = Resources.ButtonApplyFilterText,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink
-      };
+      ButtonApplyFilter = new JButton(Resources.ButtonApplyFilterText) { Name = nameof(ButtonApplyFilter) };
 
       panelControls.Build((TextBoxFilter, ButtonApplyFilter));
       
