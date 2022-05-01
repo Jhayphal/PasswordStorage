@@ -4,8 +4,13 @@ using PasswordStorage.Models;
 using PasswordStorage.Properties;
 using PasswordStorage.ViewModels;
 using ReactiveUI;
+using System;
+using System.ComponentModel;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
@@ -173,23 +178,8 @@ namespace PasswordStorage
     {
       this.WhenActivated(disposables =>
       {
-        ViewModel.BrowseFile.RegisterHandler(interaction =>
-        {
-          OpenFileDialog dialog = new OpenFileDialog
-          {
-            CheckFileExists = true,
-            Multiselect = false,
-            RestoreDirectory = true,
-            Title = Resources.BrowseDialogHeader
-          };
-
-          dialog.SetFilter(Resources.BrowseFilterName, Resources.BrowseFilterExtension);
-
-          if (dialog.ShowDialog() == DialogResult.OK)
-            interaction.SetOutput(dialog.FileName);
-          else
-            interaction.SetOutput(interaction.Input);
-        }).DisposeWith(disposables);
+        ViewModel.BrowseFile.RegisterHandler(Browse)
+          .DisposeWith(disposables);
 
         this.Bind(ViewModel, vm => vm.FileName, f => f.TextBoxFile.Text)
           .DisposeWith(disposables);
@@ -199,6 +189,13 @@ namespace PasswordStorage
           .DisposeWith(disposables);
 
         this.Bind(ViewModel, vm => vm.Data, f => f.View.DataSource)
+          .DisposeWith(disposables);
+
+        var onSelectedItemChanged = Observer.Create<object>(WhenSelectedItemChanged);
+
+        View.Events().SelectionChanged
+          .Throttle(TimeSpan.FromSeconds(.25), Scheduler.CurrentThread)
+          .Subscribe(onSelectedItemChanged)
           .DisposeWith(disposables);
 
         this.BindCommand(ViewModel, vm => vm.CopyLoginCommand, f => f.ButtonCopyLogin)
@@ -213,6 +210,39 @@ namespace PasswordStorage
         this.BindCommand(ViewModel, vm => vm.FilterCommand, f => f.ButtonApplyFilter)
           .DisposeWith(disposables);
       });
+    }
+
+    private void Browse(InteractionContext<string, string> interaction)
+    {
+      OpenFileDialog dialog = new OpenFileDialog
+      {
+        CheckFileExists = true,
+        Multiselect = false,
+        RestoreDirectory = true,
+        Title = Resources.BrowseDialogHeader
+      };
+
+      dialog.SetFilter(Resources.BrowseFilterName, Resources.BrowseFilterExtension);
+
+      if (dialog.ShowDialog() == DialogResult.OK)
+        interaction.SetOutput(dialog.FileName);
+      else
+        interaction.SetOutput(interaction.Input);
+    }
+
+    private void WhenSelectedItemChanged(object @event)
+    {
+      var rowIndex = View.SelectedCells.Count > 0
+        ? View.SelectedCells[0].RowIndex
+        : new int?();
+
+      var selected = !rowIndex.HasValue || rowIndex.Value < 0
+        ? null
+        : ViewModel.Data[rowIndex.Value];
+
+      ViewModel.Selected = selected != null && selected.Url == null
+        ? null
+        : selected;
     }
   }
 }

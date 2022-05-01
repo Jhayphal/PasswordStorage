@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Windows.Forms;
 
-namespace PasswordStorage.ViewModels
+namespace PasswordStorage.Extensions
 {
   internal static class FileDialogExtensions
   {

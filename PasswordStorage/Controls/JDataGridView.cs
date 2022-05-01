@@ -9,6 +9,8 @@ namespace PasswordStorage.Controls
       Dock = DockStyle.Fill;
       AutoGenerateColumns = false;
       AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+      MultiSelect = false;
+      SelectionMode = DataGridViewSelectionMode.CellSelect;
     }
   }
 }

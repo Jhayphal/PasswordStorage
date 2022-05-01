@@ -35,11 +35,11 @@ namespace PasswordStorage.ViewModels
       set => this.RaiseAndSetIfChanged(ref searchText, value);
     }
 
-    public BindingList<PasswordInfo> Data 
+    public BindingList<PasswordInfo> Data
       => data.Passwords;
 
     public PasswordInfo Selected 
-    { 
+    {
       get => selected;
       set => this.RaiseAndSetIfChanged(ref selected, value);
     }
@@ -84,9 +84,9 @@ namespace PasswordStorage.ViewModels
       SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, canSave);
 
       var canCopy = this.WhenAnyValue(
-        x => x.IsOperable,
+        x => x.Data,
         x => x.Selected,
-        (operable, selected) => operable && selected != null)
+        (data, selected) => data.Count > 0 && selected != null)
         .DistinctUntilChanged();
 
       CopyLoginCommand = ReactiveCommand.Create(CopyLogin, canCopy);
@@ -103,7 +103,7 @@ namespace PasswordStorage.ViewModels
       FilterCommand = ReactiveCommand.Create(Filter, canFilter);
     }
 
-    private void Browse() 
+    private void Browse()
       => fileName = browseFile.Handle(FileName).ToProperty(this, nameof(FileName));
 
     private async Task LoadAsync() 
