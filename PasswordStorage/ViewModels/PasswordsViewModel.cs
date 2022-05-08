@@ -1,14 +1,15 @@
 ﻿using PasswordStorage.Data;
 using PasswordStorage.Models;
+using PasswordStorage.Properties;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PasswordStorage.ViewModels
@@ -74,7 +75,7 @@ namespace PasswordStorage.ViewModels
         .Throttle(TimeSpan.FromSeconds(.25), RxApp.MainThreadScheduler)
         .DistinctUntilChanged();
 
-      LoadCommand = ReactiveCommand.CreateFromTask(Load, canLoad);
+      LoadCommand = ReactiveCommand.Create(Load, canLoad);
 
       var canSave = this.WhenAnyValue(
         x => x.IsOperable,
@@ -82,7 +83,7 @@ namespace PasswordStorage.ViewModels
         (operable, file) => operable && !string.IsNullOrWhiteSpace(file) && Directory.Exists(Path.GetDirectoryName(file)))
         .DistinctUntilChanged();
 
-      SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, canSave);
+      SaveCommand = ReactiveCommand.Create(Save, canSave);
 
       var canCopy = this.WhenAnyValue(
         x => x.Data,
@@ -107,10 +108,41 @@ namespace PasswordStorage.ViewModels
     private void Browse()
       => fileName = browseFile.Handle(FileName).ToProperty(this, nameof(FileName));
 
-    private Task Load() => data.LoadAsync(FileName);
+    private void Load()
+    {
+      try
+      {
+        data.Load(FileName);
 
-    private async Task SaveAsync() 
-      => await data.SaveAsync(FileName);
+        hidenByFilter.Clear();
+      }
+      catch (Exception ex)
+      {
+        Trace.TraceError(ex.Message);
+      }
+    }
+
+    private void Save()
+    {
+      try
+      {
+        if (hidenByFilter.Count == 0
+          || MessageBox.Show(
+            Resources.ItemsFilteredWarning, 
+            Resources.MayLostDataCaption, 
+            MessageBoxButtons.YesNo, 
+            MessageBoxIcon.Warning) == DialogResult.OK)
+        {
+          data.Save(FileName);
+
+          hidenByFilter.Clear();
+        }
+      }
+      catch (Exception ex)
+      {
+        Trace.TraceError(ex.Message);
+      }
+    }
 
     private void Filter()
     {

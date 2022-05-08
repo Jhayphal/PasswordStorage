@@ -1,7 +1,5 @@
 ﻿using PasswordStorage.Data;
 using System.ComponentModel;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace PasswordStorage.Models
 {
@@ -26,39 +24,17 @@ namespace PasswordStorage.Models
       };
     }
 
-    public async Task LoadAsync(string fileName)
+    public void Load(string fileName)
     {
       passwords.Clear();
 
-      //using (var stream = File.OpenRead(fileName))
-      //using (var reader = new StreamReader(stream))
-      //{
-      //  string line;
+      var items = storage.Load(fileName);
 
-      //  while ((line = await reader.ReadLineAsync()) != null)
-      //  {
-      //    if (PasswordInfo.TryParse(line, out PasswordInfo passwordInfo))
-      //    {
-      //      passwords.Add(passwordInfo);
-      //    }
-      //  }
-      //}
-
-      var curT = System.Threading.Thread.CurrentThread.ManagedThreadId;
-
-      await storage.Load(fileName)
-        .ContinueWith(t =>
-        {
-          var nT = System.Threading.Thread.CurrentThread.ManagedThreadId;
-
-          foreach (var item in t.Result)
-            passwords.AddNew(); //passwords.Add(item);
-
-          ++nT;
-        }, TaskScheduler.FromCurrentSynchronizationContext());
+      foreach (var item in items)
+        passwords.Add(item);
     }
 
-    public async Task SaveAsync(string fileName)
-      => await storage.Save(passwords, fileName);
+    public void Save(string fileName)
+      => storage.Save(passwords, fileName);
   }
 }

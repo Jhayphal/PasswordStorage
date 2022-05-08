@@ -167,5 +167,23 @@ namespace PasswordStorage.Properties {
                 return ResourceManager.GetString("GroupBoxPasswordsHeader", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Items filtered. Saving will delete them. Do you wont continue?.
+        /// </summary>
+        internal static string ItemsFilteredWarning {
+            get {
+                return ResourceManager.GetString("ItemsFilteredWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You may lost a data.
+        /// </summary>
+        internal static string MayLostDataCaption {
+            get {
+                return ResourceManager.GetString("MayLostDataCaption", resourceCulture);
+            }
+        }
     }
 }

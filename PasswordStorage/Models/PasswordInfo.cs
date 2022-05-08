@@ -1,8 +1,9 @@
 ﻿using ReactiveUI;
+using System;
 
 namespace PasswordStorage.Models
 {
-  public class PasswordInfo : ReactiveObject
+  public class PasswordInfo : ReactiveObject, ICloneable
   {
     private string url;
     private string userName;
@@ -63,5 +64,14 @@ namespace PasswordStorage.Models
 
       return true;
     }
+
+    public virtual object Clone() => new PasswordInfo
+    {
+      Url = Url,
+      UserName = UserName,
+      Password = Password,
+      Comment = Comment,
+      Tags = Tags
+    };
   }
 }
