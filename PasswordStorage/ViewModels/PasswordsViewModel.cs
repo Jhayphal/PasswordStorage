@@ -1,4 +1,5 @@
-﻿using PasswordStorage.Models;
+﻿using PasswordStorage.Data;
+using PasswordStorage.Models;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace PasswordStorage.ViewModels
     
     private PasswordInfo selected;
     private readonly Interaction<string, string> browseFile = new Interaction<string, string>();
-    private readonly PasswordsDataModel data = new PasswordsDataModel();
+    private readonly PasswordsDataModel data = new PasswordsDataModel(new CsvDataStorage());
     private readonly List<PasswordInfo> hidenByFilter = new List<PasswordInfo>();
 
     private bool isOperable = true;
@@ -73,7 +74,7 @@ namespace PasswordStorage.ViewModels
         .Throttle(TimeSpan.FromSeconds(.25), RxApp.MainThreadScheduler)
         .DistinctUntilChanged();
 
-      LoadCommand = ReactiveCommand.CreateFromTask(LoadAsync, canLoad);
+      LoadCommand = ReactiveCommand.CreateFromTask(Load, canLoad);
 
       var canSave = this.WhenAnyValue(
         x => x.IsOperable,
@@ -106,8 +107,7 @@ namespace PasswordStorage.ViewModels
     private void Browse()
       => fileName = browseFile.Handle(FileName).ToProperty(this, nameof(FileName));
 
-    private async Task LoadAsync() 
-      => await data.LoadAsync(FileName);
+    private Task Load() => data.LoadAsync(FileName);
 
     private async Task SaveAsync() 
       => await data.SaveAsync(FileName);

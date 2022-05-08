@@ -1,27 +1,27 @@
-﻿using System.ComponentModel;
+﻿using PasswordStorage.Data;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace PasswordStorage.Models
 {
-  public class PasswordsDataModel
+  internal class PasswordsDataModel
   {
+    private readonly IDataStorage storage;
+
     private BindingList<PasswordInfo> passwords;
 
     public BindingList<PasswordInfo> Passwords => passwords;
 
-    public PasswordsDataModel()
+    public PasswordsDataModel(IDataStorage storage)
     {
+      this.storage = storage;
+
       passwords = new BindingList<PasswordInfo>
       {
-        // Allow new parts to be added, but not removed once committed.        
         AllowNew = true,
         AllowRemove = true,
-
-        // Raise ListChanged events when new parts are added.
         RaiseListChangedEvents = true,
-
-        // Do not allow parts to be edited.
         AllowEdit = true
       };
     }
@@ -30,29 +30,35 @@ namespace PasswordStorage.Models
     {
       passwords.Clear();
 
-      using (var stream = File.OpenRead(fileName))
-      using (var reader = new StreamReader(stream))
-      {
-        string line;
+      //using (var stream = File.OpenRead(fileName))
+      //using (var reader = new StreamReader(stream))
+      //{
+      //  string line;
 
-        while ((line = await reader.ReadLineAsync()) != null)
+      //  while ((line = await reader.ReadLineAsync()) != null)
+      //  {
+      //    if (PasswordInfo.TryParse(line, out PasswordInfo passwordInfo))
+      //    {
+      //      passwords.Add(passwordInfo);
+      //    }
+      //  }
+      //}
+
+      var curT = System.Threading.Thread.CurrentThread.ManagedThreadId;
+
+      await storage.Load(fileName)
+        .ContinueWith(t =>
         {
-          if (PasswordInfo.TryParse(line, out PasswordInfo passwordInfo))
-          {
-            passwords.Add(passwordInfo);
-          }
-        }
-      }
+          var nT = System.Threading.Thread.CurrentThread.ManagedThreadId;
+
+          foreach (var item in t.Result)
+            passwords.AddNew(); //passwords.Add(item);
+
+          ++nT;
+        }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     public async Task SaveAsync(string fileName)
-    {
-      using (var stream = new FileStream(fileName, FileMode.Create))
-      using (var writer = new StreamWriter(stream))
-      {
-        foreach (var passwordInfo in passwords)
-          await writer.WriteLineAsync(passwordInfo.ToString());
-      }
-    }
+      => await storage.Save(passwords, fileName);
   }
 }
